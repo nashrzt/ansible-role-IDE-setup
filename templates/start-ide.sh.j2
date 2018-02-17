@@ -1,0 +1,20 @@
+#!/bin/bash
+
+RESULT=`sudo lsof -t -i:9999 |wc -l`
+
+echo ">> Starting IDE JAR <<"
+
+sudo kill -9 `sudo lsof -t -i:9095`
+nohup java -jar /ebs/bigbrain_jars/ide-1.0-SNAPSHOT.jar > /dev/null 2>&1 &
+
+
+      if [ $RESULT -eq 1 ]; then
+
+echo ">> IDE Jar is running... <<"
+
+else
+  echo ">> Jar is not started <<"
+   fi
+
+exit 0
+
