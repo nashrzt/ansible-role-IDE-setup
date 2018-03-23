@@ -1,4 +1,9 @@
 ---
+- name: Creating user group if not exists
+  group:
+    name: "{{ bigbrain_user }}"
+    state: present
+
 - name: Creating Bigbrain user
   user:
     name: "{{ bigbrain_user }}"

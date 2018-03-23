@@ -2,7 +2,7 @@
 - name: Download bbciutils from Download Server
   get_url: 
     url: 'http://downloads.razorthink.net/bigbrain/py-libs/{{item}}'
-    dest: '/etc/ansible/roles/ansible-role-IDE-setup/files/{{item}}'
+    dest: '/tmp/{{item}}'
   with_items:
   - bbcliutils-0.1-py2.py3-none-any.whl
   - bigbrain_python_sdk-0.0.1-py3-none-any.whl
@@ -14,10 +14,11 @@
   delegate_to: 127.0.0.1
   become: true
   become_method: sudo
+  when: not local 
 
-- name: Copying Whl files to Destination Server
-  copy:
-    src: '/etc/ansible/roles/ansible-role-IDE-setup/files/{{item}}'
+- name: Download bbciutils from Download Server in local env
+  get_url:
+    url: 'http://downloads.razorthink.net/bigbrain/py-libs/{{item}}'
     dest: '/tmp/{{item}}'
   with_items:
   - bbcliutils-0.1-py2.py3-none-any.whl
@@ -27,6 +28,23 @@
   - model_optimiser-0.1-py3-none-any.whl
   - rztdl-0.1.5-py3-none-any.whl
   - rztfe-0.1-py2.py3-none-any.whl
+  become: true
+  become_method: sudo
+  when: local
+
+- name: Copying Whl files to Destination Server
+  copy:
+    src: '/tmp/{{item}}'
+    dest: '/tmp/{{item}}'
+  with_items:
+  - bbcliutils-0.1-py2.py3-none-any.whl
+  - bigbrain_python_sdk-0.0.1-py3-none-any.whl
+  - cookbook_macros-0.1-py2.py3-none-any.whl
+  - model_factory-0.1-py3-none-any.whl
+  - model_optimiser-0.1-py3-none-any.whl
+  - rztdl-0.1.5-py3-none-any.whl
+  - rztfe-0.1-py2.py3-none-any.whl
+  when: not local
 
 - name: Installing all the Python Packages
   shell: pip3 install /tmp/*.whl
@@ -39,20 +57,30 @@
 - name: Download IDE Jar from Download Server
   get_url:
     url: http://downloads.razorthink.net/bigbrain/docker/ide-1.0-SNAPSHOT.jar
-    dest: /etc/ansible/roles/ansible-role-IDE-setup/files/ide-1.0-SNAPSHOT.jar
+    dest: /tmp/ide-1.0-SNAPSHOT.jar
   delegate_to: 127.0.0.1
+  when: not local
+
+- name: Download IDE Jar from Download Server in local env
+  get_url:
+    url: http://downloads.razorthink.net/bigbrain/docker/ide-1.0-SNAPSHOT.jar
+    dest: /ebs/bigbrain_jars/ide-1.0-SNAPSHOT.jar
+  become: true
+  become_user: "{{ bigbrain_user }}"
+  when: local
 
 - name: Copying IDE Jar to the Remote Server
   copy: 
-    src: /etc/ansible/roles/ansible-role-IDE-setup/files/ide-1.0-SNAPSHOT.jar
+    src: /tmp/ide-1.0-SNAPSHOT.jar
     dest: /ebs/bigbrain_jars
-    become: true
-    become_user: "{{ bigbrain_user }}"
+    owner: "{{ bigbrain_user }}"
+  when: not local
 
 - name: Copying IDE Startup Script
   template:
     src: start-ide.sh.j2
     dest: "/home/{{ bigbrain_user }}/start-ide.sh"
+    owner: "{{ bigbrain_user }}"
 
 - name: Starting IDE Jar
   shell: bash -x /home/{{ bigbrain_user }}/start-ide.sh

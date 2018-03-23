@@ -1,11 +1,11 @@
 #!/bin/bash
 
-RESULT=`sudo lsof -t -i:9999 |wc -l`
+RESULT=`lsof -t -i:9999 |wc -l`
 
 echo ">> Starting IDE JAR <<"
 
-sudo kill -9 `sudo lsof -t -i:9095`
-nohup java -jar /ebs/bigbrain_jars/ide-1.0-SNAPSHOT.jar > /dev/null 2>&1 &
+kill -9 `lsof -t -i:9999`
+nohup java -jar -Ddomain.address={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} /ebs/bigbrain_jars/ide-1.0-SNAPSHOT.jar > /dev/null 2>&1 &
 
 
       if [ $RESULT -eq 1 ]; then
